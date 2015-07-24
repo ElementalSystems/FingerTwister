@@ -1,5 +1,5 @@
 
-var board=document.getElementById('gamecanvas');
+var board;
 //javascript stuff
 function updateBoard()
 {
@@ -47,15 +47,45 @@ function touchBoard(event)
 
 function initBoard()
 { 
+   board=document.getElementById('gamecanvas');
+   board.handRing=document.getElementById('handring');
+   board.handRing.angle=0;
+   board.handRing.targetAngle=240;
+   board.handRing.spinTime=5000;
+   board.handRing.fullSpinTime=5000;
+   board.handRing.spinSpeedMax=720;
+   board.handRing.spinSpeed=720;
    board.width=300;
    board.height=300;
    board.numberZones=9;
    board.zones=new Array(board.numberZones);
+   
 	
    board.Ctx= board.getContext('2d');
    
 
    updateBoard();
+   requestAnimationFrame(tickBoard)
+}
+
+function tickBoard(time)
+{
+	if (board.lastFrameStart) 
+		board.frameTime=time-board.lastFrameStart;
+	else
+		board.frameTime=100;
+	board.lastFrameStart=time;
+
+    //work the hand spinner
+	var hr=board.handRing;
+    if (hr.spinTime>0) {
+		hr.spinSpeed=(hr.spinTime/hr.fullSpinTime)*hr.spinSpeedMax;
+		hr.angle+=hr.spinSpeed*board.frameTime/1000;
+		hr.spinTime-=board.frameTime;
+		hr.style.transform="rotateZ("+hr.angle+"deg)";
+	}
+	
+	requestAnimationFrame(tickBoard)
 }
 
 initBoard();

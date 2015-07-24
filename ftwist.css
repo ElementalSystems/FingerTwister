@@ -1,5 +1,6 @@
 body {
   background: #000;
+  overflow: hidden;
 }
 
 #gamecanvas {
@@ -8,4 +9,18 @@ body {
   margin-left: auto;
   margin-right:auto;
   background:#003;  
+  position:absolute;
+  top: 0;
+  left:0;
+}
+
+#handring
+{
+  width: 500px;
+  height: 500px;
+  position:absolute;
+  bottom:-250px;
+  left:-50px;
+ 
+  transform: rotateZ(120deg);
 }
