@@ -4,25 +4,25 @@ var board;
 function updateBoard()
 {
 	
-	board.Ctx.fillStyle = board.zones[0]?"#F00":"#500";
+	board.Ctx.fillStyle = board.zones[0].isTouched?"#F00":"#500";
     board.Ctx.fillRect(5,5,90,90);
-	board.Ctx.fillStyle = board.zones[1]?"#F00":"#500";
+	board.Ctx.fillStyle = board.zones[1].isTouched?"#F00":"#500";
     board.Ctx.fillRect(105,5,90,90);
-	board.Ctx.fillStyle = board.zones[2]?"#F00":"#500";
+	board.Ctx.fillStyle = board.zones[2].isTouched?"#F00":"#500";
     board.Ctx.fillRect(205,5,90,90);
 	
-	board.Ctx.fillStyle = board.zones[3]?"#0F0":"#050";
+	board.Ctx.fillStyle = board.zones[3].isTouched?"#0F0":"#050";
     board.Ctx.fillRect(5,105,90,90);
-	board.Ctx.fillStyle = board.zones[4]?"#0F0":"#050";
+	board.Ctx.fillStyle = board.zones[4].isTouched?"#0F0":"#050";
     board.Ctx.fillRect(105,105,90,90);
-	board.Ctx.fillStyle = board.zones[5]?"#0F0":"#050";
+	board.Ctx.fillStyle = board.zones[5].isTouched?"#0F0":"#050";
     board.Ctx.fillRect(205,105,90,90);
 	
-	board.Ctx.fillStyle = board.zones[6]?"#00F":"#005";    
+	board.Ctx.fillStyle = board.zones[6].isTouched?"#00F":"#005";    
 	board.Ctx.fillRect(5,206,90,90);
-	board.Ctx.fillStyle = board.zones[7]?"#00F":"#005";    
+	board.Ctx.fillStyle = board.zones[7].isTouched?"#00F":"#005";    
 	board.Ctx.fillRect(105,205,90,90);
-	board.Ctx.fillStyle = board.zones[8]?"#00F":"#005";    
+	board.Ctx.fillStyle = board.zones[8].isTouched?"#00F":"#005";    
 	board.Ctx.fillRect(205,205,90,90);
 	
 }
@@ -32,14 +32,14 @@ function touchBoard(event)
 	event.preventDefault();
 	//first clear all touches
 	for (var i=0;i<board.numberZones;i+=1)
-	  board.zones[i]=0;
+	  board.zones[i].isTouched=false;
 	var tch=event.touches;
 	for (var j=0;j<tch.length;j+=1) {
 		var touch=tch[j];
-		var x=Math.floor(touch.clientX*3/400.0);
-		var y=Math.floor(touch.clientY*3/400.0);
+		var x=Math.floor(touch.clientX*3/board.offsetWidth);
+		var y=Math.floor(touch.clientY*3/board.offsetHeight);
 		if ((x>2)||(y>2)) continue;
-		board.zones[x+y*3]=1;
+		board.zones[x+y*3].isTouched=true;
 	}
     updateBoard();
 	return false;
@@ -48,8 +48,9 @@ function touchBoard(event)
 function startSpinners()
 {
    startSpinner(board.handRing,randomInt(0,2)*120);
+   board.colRing.spinTime=1500+randomInt(0,1000);
    startSpinner(board.colRing,randomInt(0,2)*120);	
-   setTimeout(startSpinners,5000);
+   setTimeout(startSpinners,8000);
 }
 
 function randomInt(min,max) {
@@ -67,12 +68,11 @@ function initBoard()
    board.colRing=document.getElementById('colring');
    board.colRing.startSpin=true;
    board.colRing.angle=0;
-   board.colRing.spinTime=2500;
    board.colRing.spinTurns=-3;
    board.width=300;
    board.height=300;
    board.numberZones=9;
-   board.zones=new Array(board.numberZones);
+   board.zones=[{},{},{},{},{},{},{},{},{}];
    startSpinners();
 	
    board.Ctx= board.getContext('2d');
