@@ -3,27 +3,43 @@ var board;
 //javascript stuff
 function updateBoard()
 {
+	//clear board
+	board.Ctx.fillStyle = "#000";    	
+	board.Ctx.fillRect(0,0,300,300);
+		
+	for (var i=0;i<9;i+=1) {
+		if (board.zones[i].isHidden) continue;
+		var row=Math.floor(i/3);
+		var col=i%3;
+	    
+		switch (row) {
+			case 0://Red
+	            board.Ctx.fillStyle = board.zones[i].isTouched?"#F00":"#500";    	
+				board.Ctx.strokeStyle = "#F00";    					
+				break;
+			case 1: //green
+			    board.Ctx.fillStyle = board.zones[i].isTouched?"#0F0":"#050";    	
+				board.Ctx.strokeStyle = "#0F0";    	
+				break;
+			case 2: //blue
+			    board.Ctx.fillStyle = board.zones[i].isTouched?"#00F":"#005";    	
+				board.Ctx.strokeStyle = "#00F";    					
+				break;
+		}
+			
+		board.Ctx.fillRect(5+col*100,5+row*100,90,90);
+		if (board.zones[i].isTarget) {
+		  board.Ctx.lineWidth=2;
+		  board.Ctx.strokeRect(5+col*100,5+row*100,90,90);
+        }		
+ 		if (board.zones[i].isHolding&&(!board.zones[i].isTouched)) { //violation zone
+		  board.Ctx.lineWidth=5;
+		  board.Ctx.strokeStyle = "#FFF";    					
+		  board.Ctx.strokeRect(5+col*100,5+row*100,90,90);
+        }		
+ 		
+	}
 	
-	board.Ctx.fillStyle = board.zones[0].isTouched?"#F00":"#500";
-    board.Ctx.fillRect(5,5,90,90);
-	board.Ctx.fillStyle = board.zones[1].isTouched?"#F00":"#500";
-    board.Ctx.fillRect(105,5,90,90);
-	board.Ctx.fillStyle = board.zones[2].isTouched?"#F00":"#500";
-    board.Ctx.fillRect(205,5,90,90);
-	
-	board.Ctx.fillStyle = board.zones[3].isTouched?"#0F0":"#050";
-    board.Ctx.fillRect(5,105,90,90);
-	board.Ctx.fillStyle = board.zones[4].isTouched?"#0F0":"#050";
-    board.Ctx.fillRect(105,105,90,90);
-	board.Ctx.fillStyle = board.zones[5].isTouched?"#0F0":"#050";
-    board.Ctx.fillRect(205,105,90,90);
-	
-	board.Ctx.fillStyle = board.zones[6].isTouched?"#00F":"#005";    
-	board.Ctx.fillRect(5,206,90,90);
-	board.Ctx.fillStyle = board.zones[7].isTouched?"#00F":"#005";    
-	board.Ctx.fillRect(105,205,90,90);
-	board.Ctx.fillStyle = board.zones[8].isTouched?"#00F":"#005";    
-	board.Ctx.fillRect(205,205,90,90);
 	
 }
 
@@ -31,8 +47,10 @@ function touchBoard(event)
 {
 	event.preventDefault();
 	//first clear all touches
-	for (var i=0;i<board.numberZones;i+=1)
+	for (var i=0;i<board.numberZones;i+=1) {
+	  board.zones[i].prevTouched=board.zones[i].isTouched;
 	  board.zones[i].isTouched=false;
+	}
 	var tch=event.touches;
 	for (var j=0;j<tch.length;j+=1) {
 		var touch=tch[j];
@@ -41,16 +59,51 @@ function touchBoard(event)
 		if ((x>2)||(y>2)) continue;
 		board.zones[x+y*3].isTouched=true;
 	}
+	for (var i=0;i<board.numberZones;i+=1) {
+		//check for a target hit
+		if (board.zones[i].isTouched&&board.zones[i].isTarget) {//pressed down a target
+			board.fingers[board.spinTargetFinger]=i;
+			board.zones[i].isHolding=true;
+			startSpinners();			
+		}
+	}
+	
     updateBoard();
 	return false;
 }
 
 function startSpinners()
 {
-   startSpinner(board.handRing,randomInt(0,2)*120);
+   board.spinTargetFinger=randomInt(0,2);
+   board.spinTargetCol=randomInt(0,2);
+   
+   startSpinner(board.handRing,-board.spinTargetFinger*120);
    board.colRing.spinTime=1500+randomInt(0,1000);
-   startSpinner(board.colRing,randomInt(0,2)*120);	
-   setTimeout(startSpinners,8000);
+   startSpinner(board.colRing,-board.spinTargetCol*120);	
+   for (var i=0;i<board.numberZones;i+=1) {	   
+	   board.zones[i].isTarget=false;
+	   board.zones[i].isHidden=false;	  
+   }
+   
+   setTimeout(spinnerActionComplete,2000);
+}
+
+function spinnerActionComplete()
+{
+   //start the timer
+   //remove the previous finger
+   var finZone=board.fingers[board.spinTargetFinger];
+   if (finZone>=0) {
+      board.zones[finZone].isHolding=false;
+	  board.zones[finZone].isHidden=true;	  
+   }
+  
+   //set up the targets and remove last target
+   for (var i=0;i<board.numberZones;i+=1) {	   
+	   board.zones[i].isTarget=(!board.zones[i].isHolding)&&(Math.floor(i/3)==board.spinTargetCol);	   
+   }
+   updateBoard();
+   //setTimeout(startSpinners,8000);
 }
 
 function randomInt(min,max) {
@@ -73,6 +126,7 @@ function initBoard()
    board.height=300;
    board.numberZones=9;
    board.zones=[{},{},{},{},{},{},{},{},{}];
+   board.fingers=[-1,-1,-1];
    startSpinners();
 	
    board.Ctx= board.getContext('2d');
@@ -114,7 +168,8 @@ function tickSpinner(hr,time)
 		hr.timeStart=time;
 		hr.timeEnd=time+hr.spinTime;
 		hr.angleStart=hr.angle%360;
-		hr.angleEnd=360*hr.spinTurns-hr.angleStart+hr.spinOffset;
+		
+		hr.angleEnd=360*hr.spinTurns+hr.spinOffset;
 		hr.isSpinning=true;
 		hr.startSpin=false;
 	}
