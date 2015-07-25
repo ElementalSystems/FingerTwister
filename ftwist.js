@@ -62,9 +62,16 @@ function touchBoard(event)
 	for (var i=0;i<board.numberZones;i+=1) {
 		//check for a target hit
 		if (board.zones[i].isTouched&&board.zones[i].isTarget) {//pressed down a target
-			board.fingers[board.spinTargetFinger]=i;
-			board.zones[i].isHolding=true;
-			startSpinners();			
+		    //check that we are otherwise other legal
+			var allGood=true;
+			for (var t=0;t<board.numberZones;t+=1)
+				if ((board.zones[t].isHolding)&&(!board.zones[t].isTouched)) //if we are not all legit then screw it 
+					allGood=false;
+			if (allGood) {
+			  board.fingers[board.spinTargetFinger]=i;
+			  board.zones[i].isHolding=true;
+			  startSpinners();			
+			}
 		}
 	}
 	
