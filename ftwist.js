@@ -32,7 +32,7 @@ function updateBoard()
 		  board.Ctx.lineWidth=2;
 		  board.Ctx.strokeRect(5+col*100,5+row*100,90,90);
         }		
- 		if (board.zones[i].isHolding&&(!board.zones[i].isTouched)) { //violation zone
+ 		if (board.zones[i].isFoul) { //violation zone
 		  board.Ctx.lineWidth=5;
 		  board.Ctx.strokeStyle = "#FFF";    					
 		  board.Ctx.strokeRect(5+col*100,5+row*100,90,90);
@@ -41,6 +41,23 @@ function updateBoard()
 	}
 	
 	
+}
+
+function checkBoardForFouls()
+{
+	//check for violation
+	board.foul=false;
+	for (var t=0;t<board.numberZones;t+=1) {
+	  board.zones[t].isFoul=false;
+      if (board.zones[t].isTouched) { 
+	     if ((board.zones[t].isTarget)||(board.zones[t].isHolding)||(board.zones[t].isHidden))  continue; //we are allowed to touch a target 		 
+	  } else {
+	     if (!board.zones[t].isHolding) continue; //we're not suppoed to be holdit and we're not		 
+      }		
+	  //we found a foul!
+      board.foul=true;
+      board.zones[t].isFoul=true;	  
+	}	
 }
 
 function touchBoard(event)
@@ -59,12 +76,7 @@ function touchBoard(event)
 		if ((x>2)||(y>2)) continue;
 		board.zones[x+y*3].isTouched=true;
 	}
-	//check for violation
-	board.foul=false;
-	for (var t=0;t<board.numberZones;t+=1)
-	  if ((board.zones[t].isHolding)&&(!board.zones[t].isTouched)) //if we are not all legit then screw it 
-		 board.foul=true;
-	
+	checkBoardForFouls();
 	if (!board.foul) {
 	  for (var i=0;i<board.numberZones;i+=1) {
 		//check for a target hit
@@ -83,18 +95,26 @@ function touchBoard(event)
 
 function startSpinners()
 {
-   board.spinTargetFinger=randomInt(0,2);
-   board.spinTargetCol=randomInt(0,2);
-   startSpinner(board.handRing,-board.spinTargetFinger*120);
-   board.colRing.spinTime=1500+randomInt(0,1000);
-   startSpinner(board.colRing,-board.spinTargetCol*120);	
-   for (var i=0;i<board.numberZones;i+=1) {	   
+  
+  do {
+    var targets=0;  
+    board.spinTargetFinger=randomInt(0,2);
+    board.spinTargetCol=randomInt(0,2);
+    for (var i=0;i<board.numberZones;i+=1) {	      
+       //check the is an available 
 	   board.zones[i].isTarget=false;
-	   board.zones[i].isHidden=false;	  
-   }
-   board.timeAllowed=board.goalTime;   
-   setTimeout(spinnerActionComplete,2000);
-   updateBoard();
+	   board.zones[i].isHidden=false;		   
+	   if ((Math.floor(i/3)==board.spinTargetCol)&&(!board.zones[i].isHolding)) targets+=1;	   
+    }
+  } while (targets==0); //try again if we don't have 
+  startSpinner(board.handRing,-board.spinTargetFinger*120);
+  board.colRing.spinTime=1500+randomInt(0,1000);
+  startSpinner(board.colRing,-board.spinTargetCol*120);	  
+  board.timeAllowed=board.goalTime;   
+  setTimeout(spinnerActionComplete,2000);
+  board.level+=1;
+  checkBoardForFouls();   
+  updateBoard();
 }
 
 function spinnerActionComplete()
@@ -108,8 +128,11 @@ function spinnerActionComplete()
   
    //set up the targets 
    for (var i=0;i<board.numberZones;i+=1) {	   
-	   board.zones[i].isTarget=(!board.zones[i].isHolding)&&(!board.zones[i].isHidden)&&(Math.floor(i/3)==board.spinTargetCol);	   
+	   board.zones[i].isTarget=(!board.zones[i].isHolding)&&(!board.zones[i].isHidden)&&(Math.floor(i/3)==board.spinTargetCol);	   	  
    }
+   
+   checkBoardForFouls();
+   
    updateBoard();
 }
 
@@ -127,7 +150,7 @@ function resizeBoard()
    board.style.height=cw+"px";
    board.handRing.style.bottom=(-cw*.55)+"px";
    board.colRing.style.bottom=(-cw*.5)+"px";
-   
+   board.foulIndicator.style.top=cw+"px";
    
    //calculate offset position for touch events
    board.xPosition = 0;
@@ -148,6 +171,7 @@ function initBoard()
    
    board.foulIndicator=document.getElementById('foulindicator');
    board.timeIndicator=document.getElementById('timeindicator');
+   board.scoreIndicator=document.getElementById('scoreindicator');
    board.handRing=document.getElementById('handring');
    board.handRing.angle=0;
    board.handRing.spinTime=2000;
@@ -266,7 +290,8 @@ function tickBoard(time)
 	    unsetElementClass(board.foulIndicator,"foul");
 		
 		
-	board.timeIndicator.innerHTML=(board.timeAllowed/1000).toFixed(1)+" Seconds. Score :"+board.score;
+	board.timeIndicator.innerHTML=(board.timeAllowed/1000).toFixed(1)+" Secs";
+	board.scoreIndicator.innerHTML="Score: "+board.score;
 	board.timeAllowed-=board.frameTime;
 	  
 	if (board.foul) board.timeAllowed-=board.frameTime*3;	  
@@ -276,6 +301,8 @@ function tickBoard(time)
 		unsetElementClass(document.getElementById('gamespace'),'playing');	
 		setElementClass(document.getElementById('gamespace'),'gameover');	
 		document.getElementById('completestatus').innerHTML="Final Score "+board.score+"!";		
+		ga('send', 'event', 'End',board.score);	
+		ga('send', 'event', 'EndLevel',board.level);	
 	}
 	  
 }
@@ -292,6 +319,7 @@ function startGame(time)
   board.foul=0;
   setElementClass(document.getElementById('gamespace'),'playing');
   startSpinners();  	
+  ga('send', 'event', 'Start'+time);	  
 }
 
 function instruct(show)

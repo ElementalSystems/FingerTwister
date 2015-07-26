@@ -1,6 +1,9 @@
+
+
 body {
   background: #000;
   overflow: hidden;
+  font-family: 'Share Tech Mono',monospace;
 }
 
 #startmenu
@@ -98,42 +101,57 @@ body {
 }
 
 
-#controlpanel
-{
-  position:absolute;
-  right:0;
-  width:auto;
-  bottom:0;
-  height:auto;
-}
 
 #timeindicator
 {
   text-align:center;
-  width: 10em;
-  font-size:200%;
+  font-size:125%;
+  padding:.25em;
+  border-radius: .25em;
+  margin: .25em;
   position:absolute;
   bottom: 0px;
   right:0px;
-  background: #CCC;
   z-index: 25;
+  color: #FFF;
+  background: rgba(0,0,0,.6);
+}
+
+#scoreindicator
+{
+  text-align:center;
+  font-size:100%;
+  position:absolute;
+  left: 0px;
+  bottom: 0px;
+  z-index: 25;
+  padding:.25em;
+  border-radius: .25em;
+  margin: .25em;
+  color: #FFF;
+  background: rgba(0,0,0,.6);
+  
 }
 
 #foulindicator
 {
+  text-align:center;
   font-size:300%;
   position:absolute;
-  bottom: 80px;
-  right:0px;
-  background: #F00;
+  top: 0px;  
+  left: 0px;
+  right: 0px;
+  background: rgba(200,0,0,.6);
+  color: #FFF;
   display: none;
   z-index: 26;
+  margin: .5em;
+  border-radius: .25em;
 }
 
 #foulindicator.foul
 {
- display: block;
- 
+ display: block; 
 }
 
 #colring
