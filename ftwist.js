@@ -117,20 +117,19 @@ function randomInt(min,max) {
      return Math.floor(min+(max-min+1)*Math.random());
 }
 
-
-function initBoard()
-{ 
-   board=document.getElementById('gamecanvas');
-   
-   //General Size to fit screen
+function resizeBoard()
+{
+	//General Size to fit screen
    var sw=window.innerWidth;
    var sh=window.innerHeight*2/3;
    var cw=(sw<sh)?sw:sh;
    document.getElementById('gamespace').style.width=cw+"px";
-   document.getElementById('gamecanvas').style.height=cw+"px";
+   board.style.height=cw+"px";
+   board.handRing.style.bottom=(-cw*.55)+"px";
+   board.colRing.style.bottom=(-cw*.5)+"px";
    
    
-   //calculate offset position
+   //calculate offset position for touch events
    board.xPosition = 0;
    board.yPosition = 0;
    element=board;
@@ -139,6 +138,13 @@ function initBoard()
         board.yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
         element = element.offsetParent;
    }
+   
+}
+
+function initBoard()
+{ 
+   board=document.getElementById('gamecanvas');
+
    
    board.foulIndicator=document.getElementById('foulindicator');
    board.timeIndicator=document.getElementById('timeindicator');
@@ -149,6 +155,11 @@ function initBoard()
    board.colRing=document.getElementById('colring');
    board.colRing.angle=0;
    board.colRing.spinTurns=-3;
+   
+   resizeBoard();
+   window.addEventListener('resize',resizeBoard);
+   
+   
    board.width=300;
    board.height=300;
    board.numberZones=9;
@@ -239,11 +250,10 @@ function tickBoard(time)
 		board.frameTime=time-board.lastFrameStart;
 	else
 		board.frameTime=100;
+	
 	board.lastFrameStart=time;
 
-	
 	if (board.gameOver) return;
-	
 	
     //work the hand spinner
 	tickSpinner(board.handRing,time);
@@ -265,12 +275,9 @@ function tickBoard(time)
 		board.gameOver=true;
 		unsetElementClass(document.getElementById('gamespace'),'playing');	
 		setElementClass(document.getElementById('gamespace'),'gameover');	
-		document.getElementById('completestatus').innerHTML="Final Score "+board.score+"!";
-		
+		document.getElementById('completestatus').innerHTML="Final Score "+board.score+"!";		
 	}
 	  
-	
-		
 }
 
 function startGame(time)
