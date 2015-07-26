@@ -50,19 +50,21 @@ body {
 {
   position: absolute;
   left: 0;
-  right:0;
+  right:100%;
   top:0;
-  bottom: 100%;
+  bottom: 0;
   background-color: #000;
   color: #DDD;  
   z-index:200;
-  overflow: hidden;  
-  transition: bottom .5s;
+  overflow-y: auto; 
+  overflow-x: hidden;  
+  transition: right 1s;
+  
 }
 
 #instructions.show
 {
-  bottom:0;
+  right:0;
 }
 
 #gamespace a.menubutton
