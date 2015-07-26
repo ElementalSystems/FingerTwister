@@ -54,8 +54,8 @@ function touchBoard(event)
 	var tch=event.touches;
 	for (var j=0;j<tch.length;j+=1) {
 		var touch=tch[j];
-		var x=Math.floor(touch.clientX*3/board.offsetWidth);
-		var y=Math.floor(touch.clientY*3/board.offsetHeight);
+		var x=Math.floor((touch.clientX-board.xPosition)*3/board.offsetWidth);
+		var y=Math.floor((touch.clientY-board.yPosition)*3/board.offsetHeight);
 		if ((x>2)||(y>2)) continue;
 		board.zones[x+y*3].isTouched=true;
 	}
@@ -71,7 +71,9 @@ function touchBoard(event)
 		if (board.zones[i].isTouched&&board.zones[i].isTarget) {//pressed down a target
 		  board.fingers[board.spinTargetFinger]=i;
 		  board.zones[i].isHolding=true;
-	      startSpinners();			
+		  board.score+=Math.floor(board.timeAllowed/1000);
+	      startSpinners();
+          break;		  
 		}
 	  }
 	}	
@@ -83,7 +85,6 @@ function startSpinners()
 {
    board.spinTargetFinger=randomInt(0,2);
    board.spinTargetCol=randomInt(0,2);
-   board.timeAllowed=0;
    startSpinner(board.handRing,-board.spinTargetFinger*120);
    board.colRing.spinTime=1500+randomInt(0,1000);
    startSpinner(board.colRing,-board.spinTargetCol*120);	
@@ -91,13 +92,13 @@ function startSpinners()
 	   board.zones[i].isTarget=false;
 	   board.zones[i].isHidden=false;	  
    }
-   
+   board.timeAllowed=board.goalTime;   
    setTimeout(spinnerActionComplete,2000);
+   updateBoard();
 }
 
 function spinnerActionComplete()
 {
-   //start the timer
    //remove the previous finger
    var finZone=board.fingers[board.spinTargetFinger];
    if (finZone>=0) {
@@ -109,7 +110,6 @@ function spinnerActionComplete()
    for (var i=0;i<board.numberZones;i+=1) {	   
 	   board.zones[i].isTarget=(!board.zones[i].isHolding)&&(!board.zones[i].isHidden)&&(Math.floor(i/3)==board.spinTargetCol);	   
    }
-   board.timeAllowed=board.goalTime;
    updateBoard();
 }
 
@@ -121,6 +121,25 @@ function randomInt(min,max) {
 function initBoard()
 { 
    board=document.getElementById('gamecanvas');
+   
+   //General Size to fit screen
+   var sw=window.innerWidth;
+   var sh=window.innerHeight*2/3;
+   var cw=(sw<sh)?sw:sh;
+   document.getElementById('gamespace').style.width=cw+"px";
+   document.getElementById('gamecanvas').style.height=cw+"px";
+   
+   
+   //calculate offset position
+   board.xPosition = 0;
+   board.yPosition = 0;
+   element=board;
+   while (element) {
+        board.xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+        board.yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
+        element = element.offsetParent;
+   }
+   
    board.foulIndicator=document.getElementById('foulindicator');
    board.timeIndicator=document.getElementById('timeindicator');
    board.handRing=document.getElementById('handring');
@@ -128,7 +147,6 @@ function initBoard()
    board.handRing.spinTime=2000;
    board.handRing.spinTurns=2;
    board.colRing=document.getElementById('colring');
-   board.colRing.startSpin=true;
    board.colRing.angle=0;
    board.colRing.spinTurns=-3;
    board.width=300;
@@ -136,8 +154,12 @@ function initBoard()
    board.numberZones=9;
    board.zones=[{},{},{},{},{},{},{},{},{}];
    board.fingers=[-1,-1,-1];
-   board.goalTime=10000;
-   startSpinners();
+   board.goalTime=12000;
+   board.spinTargetFinger=0;
+   board.spinTargetCol=0;
+   board.timeAllowed=0;
+   board.gameOver=true;
+   
 	
    board.Ctx= board.getContext('2d');
    
@@ -210,12 +232,18 @@ function tickSpinner(hr,time)
   
 function tickBoard(time)
 {
+	  
+	requestAnimationFrame(tickBoard)	
+	
 	if (board.lastFrameStart) 
 		board.frameTime=time-board.lastFrameStart;
 	else
 		board.frameTime=100;
 	board.lastFrameStart=time;
 
+	
+	if (board.gameOver) return;
+	
 	
     //work the hand spinner
 	tickSpinner(board.handRing,time);
@@ -227,13 +255,48 @@ function tickBoard(time)
 	else
 	    unsetElementClass(board.foulIndicator,"foul");
 		
-	if (board.timeAllowed)  {
-	  board.timeIndicator.innerHTML="Time: "+(board.timeAllowed/1000).toFixed(1);
-	  board.timeAllowed-=board.frameTime;
-	  if (board.foul) board.timeAllowed-=board.frameTime*3;	  
-	} else
-	  board.timeIndicator.innerHTML="Spinning...";
-	requestAnimationFrame(tickBoard)
+		
+	board.timeIndicator.innerHTML=(board.timeAllowed/1000).toFixed(1)+" Seconds. Score :"+board.score;
+	board.timeAllowed-=board.frameTime;
+	  
+	if (board.foul) board.timeAllowed-=board.frameTime*3;	  
+	  
+	if (board.timeAllowed<0) {
+		board.gameOver=true;
+		unsetElementClass(document.getElementById('gamespace'),'playing');	
+		setElementClass(document.getElementById('gamespace'),'gameover');	
+		document.getElementById('completestatus').innerHTML="Final Score "+board.score+"!";
+		
+	}
+	  
+	
+		
+}
+
+function startGame(time)
+{
+  board.zones=[{},{},{},{},{},{},{},{},{}];
+  board.fingers=[-1,-1,-1];
+   
+  board.goalTime=time*1000;
+  board.score=0;
+  board.level=0;
+  board.gameOver=false;  
+  board.foul=0;
+  setElementClass(document.getElementById('gamespace'),'playing');
+  startSpinners();  	
+}
+
+function instruct(show)
+{
+	if (show) setElementClass(document.getElementById('instructions'),'show');
+	else unsetElementClass(document.getElementById('instructions'),'show');	
+}
+
+function mainmenu()
+{
+	unsetElementClass(document.getElementById('gamespace'),'gameover');	
 }
 
 initBoard();
+

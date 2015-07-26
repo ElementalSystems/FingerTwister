@@ -7,12 +7,31 @@
   </head>
   <body onload>
   <div id=gamespace>
+  <div id=startmenu>
+  <h1>Finger Twister</h1>
+  <a onclick="instruct(true)">Instructions</a>
+  <a onclick="startGame(15)">Play (Easy)</a>
+  <a onclick="startGame(9)">Play (Hard)</a>
+  <h2>a multi-touch game by elementalsystems for twelvegamesayear</h2>
+  </div>
+  <div id=instructions>
+  <h1>Instructions</h1>
+  <h2>Texty stuff goes here...</h2>
+  <a onclick="instruct(false)">Back</a>  
+  </div>
+  <div id=complete>
+  <h1>GAME OVER</h1>  
+  <h2 id=completestatus>You Score 110 Points.</h2>
+  <a onclick="mainmenu()">Back</a>    
+  </div>
   <canvas id=gamecanvas ontouchstart="touchBoard(event)" ontouchend="touchBoard(event)"  ontouchmove="touchBoard(event)" ontouchcancel="touchBoard(event)"></canvas>
   <img id=handring src="HandRing.png">
   <img id=colring src="ColRing.png">
   <img id=overlay src="overlay.png">
+  <div id=controlpanel>
   <div id=timeindicator >SPINNING</div>
   <div id=foulindicator >VIOLATION</div>		  
+  </div>
   </div>
   </body>
   <script src="ftwist.js"></script>

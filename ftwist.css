@@ -3,49 +3,140 @@ body {
   overflow: hidden;
 }
 
-#gamecanvas {
-  width: 400px;
-  height: 400px;
-  margin-left: auto;
+#startmenu
+{
+  position: absolute;
+  left: 0;
+  right:0;
+  top:0;
+  bottom: 0;
+  background-color: #000;
+  color: #DDD;  
+  z-index:100;
+  overflow: hidden;  
+}
+
+#gamespace.playing #startmenu
+{
+  bottom:100%;
+  right:100%;
+}
+
+#complete
+{
+  position: absolute;
+  left: 0;
+  right:0;
+  top:0;
+  bottom: 100%;
+  background-color: #000;
+  color: #DDD;  
+  z-index:200;
+  overflow: hidden;  
+}
+
+#gamespace.gameover #complete
+{
+  bottom: 0;
+}
+
+
+#gamespace.playing #startmenu
+{
+  bottom:100%;
+  right:100%;
+  overflow: hidden;  
+}
+
+#instructions
+{
+  position: absolute;
+  left: 0;
+  right:0;
+  top:0;
+  bottom: 100%;
+  background-color: #000;
+  color: #DDD;  
+  z-index:200;
+  overflow: hidden;  
+}
+
+#instructions.show
+{
+  bottom:0;
+}
+
+#gamespace a
+{
+  padding: 1em;
+  margin-bottom: 1em;
+  display: block;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #FFF;
+  color: #FFF;
+  cursor: pointer; 
+}
+
+#gamespace
+{
+  position:relative;
+  height:100%;
+  margin-left:auto;
   margin-right:auto;
+  overflow:hidden;
+}
+
+#gamecanvas {
+  width: 100%;
   background:#003;  
   position:absolute;
   top: 0;
   left:0;
+  right:0;
   z-index: 50;
 }
 
 #handring
 {
-  width: 400px;
-  height: 400px;
+  width: 100%;
+  height: auto;
   position:absolute;
-  bottom:-200px;
+  bottom: -30%;
   left:0px;
   z-index: 15;
 }
 
 #overlay
 {
-  width: 400px;
-  height: 400px;
+  width: 100%;
+  height: auto;
   position:absolute;
   bottom: 0px;
   left:0px;
   z-index: 20;
+  margin:0;
+}
+
+#controlpanel
+{
+  position:absolute;
+  right:0;
+  width:auto;
+  bottom:0;
+  height:auto;
 }
 
 #timeindicator
 {
-
+  text-align:center;
+  width: 10em;
   font-size:200%;
   position:absolute;
   bottom: 0px;
   right:0px;
   background: #CCC;
-  
   z-index: 25;
-
 }
 
 #foulindicator
@@ -58,15 +149,12 @@ body {
   display: none;
   z-index: 26;
 }
+
 #foulindicator.foul
 {
  display: block;
  
 }
-
-
-
-
 
 #colring
 {
